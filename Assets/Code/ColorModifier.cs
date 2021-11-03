@@ -6,9 +6,10 @@ public class ColorModifier : MonoBehaviour
 {
     // Start is called before the first frame update
     Vector3 originalScale;
+    ArrayList colors = new ArrayList(){Color.white, Color.magenta, Color.red, Color.blue, Color.green, Color.yellow };
+    public int currentColor = 0;
     void Start()
     {
-        print("Game started!");
         originalScale = transform.localScale;
     }
 
@@ -29,31 +30,37 @@ public class ColorModifier : MonoBehaviour
         }
     }
     private void OnMouseEnter() {
-        transform.localScale = originalScale * 1.1f;
+        transform.localScale = originalScale * 1.2f;
     }
     private void OnMouseExit() {
         transform.localScale = originalScale;
     }
-    private void recolor(bool allRandom){
-        ArrayList obj_list = get_objects(transform);
-        Color c = new Color(Random.Range(0.0f,1.0f),Random.Range(0.0f,1.0f),Random.Range(0.0f,1.0f));
-        foreach(Transform o in obj_list){
-            string name = o.gameObject.name;
-            if(name.Contains("eye") || name.Contains("mouth")){
-                continue;
+    private void recolor(bool all){
+        if (all){
+            GameObject clown = GameObject.FindWithTag("clown");
+            
+            ArrayList obj_list = get_objects(clown);
+            foreach(GameObject g in obj_list){
+                string name = g.name;
+                if(!g.tag.Equals("colorable") || name.Equals(this.gameObject.name)){
+                    continue;
+                }
+                SpriteRenderer s = g.GetComponent<SpriteRenderer>();
+                if(s){
+                    s.color = (Color)colors[this.currentColor];
+                    g.GetComponent<ColorModifier>().currentColor = this.currentColor;
+                }
             }
-            SpriteRenderer s = o.gameObject.GetComponent<SpriteRenderer>();
-            if(s){
-                if (allRandom) c = new Color(Random.Range(0.0f,1.0f),Random.Range(0.0f,1.0f),Random.Range(0.0f,1.0f));
-                s.color = c;
-            }
+        }else{
+            this.currentColor = ++this.currentColor % this.colors.Count;
+            this.transform.gameObject.GetComponent<SpriteRenderer>().color = (Color)colors[this.currentColor];
         }
     }
-    private ArrayList get_objects(Transform transform){
+    private ArrayList get_objects(GameObject clown){
         ArrayList objs = new ArrayList();
-        objs.Add(transform);
-        for(int i = 0;i< transform.childCount; i++){
-            objs.AddRange(get_objects(transform.GetChild(i)));
+        objs.Add(clown);
+        for(int i = 0;i< clown.transform.childCount; i++){
+            objs.AddRange(get_objects(clown.transform.GetChild(i).gameObject));
         }
         return objs;
 
